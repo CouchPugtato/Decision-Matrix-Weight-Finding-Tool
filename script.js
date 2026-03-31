@@ -3,7 +3,7 @@ let comparisons = [];
 let currentComparisonIndex = 0;
 let weights = {};
 
-const singleCategoryInput = document.getElementById("single-category");
+const categoryInput = document.getElementById("category-input");
 const categoryList = document.getElementById("category-list");
 const setupMessage = document.getElementById("setup-message");
 const setupPanel = document.getElementById("setup-panel");
@@ -14,15 +14,22 @@ const progressText = document.getElementById("progress-text");
 const resultsTableWrap = document.getElementById("results-table-wrap");
 
 document.getElementById("add-category-btn").addEventListener("click", () => {
-  addCategory(singleCategoryInput.value);
-  singleCategoryInput.value = "";
-  singleCategoryInput.focus();
-});
+  let added = 0;
+  const parts = categoryInput.value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 
-document.getElementById("clear-categories-btn").addEventListener("click", () => {
-  categories.length = 0;
+  parts.forEach((part) => {
+    added += addCategory(part, false) ? 1 : 0;
+  });
+
   renderCategories();
-  setupMessage.textContent = "Cleared all categories.";
+  categoryInput.value = "";
+  categoryInput.focus();
+  setupMessage.textContent = added > 0
+    ? `Added ${added} categor${added === 1 ? "y" : "ies"}.`
+    : "No new categories were added.";
 });
 
 document.getElementById("start-game-btn").addEventListener("click", () => {
@@ -40,7 +47,7 @@ document.getElementById("restart-btn").addEventListener("click", () => {
   currentComparisonIndex = 0;
   weights = {};
   renderCategories();
-  singleCategoryInput.value = "";
+  categoryInput.value = "";
   setupMessage.textContent = "Start with a fresh set of categories.";
   setupPanel.classList.remove("hidden");
   gamePanel.classList.add("hidden");
@@ -55,13 +62,6 @@ document.getElementById("answer-buttons").addEventListener("click", (event) => {
 
   const factor = Number(button.dataset.factor);
   applyAnswer(factor);
-});
-
-singleCategoryInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    document.getElementById("add-category-btn").click();
-  }
 });
 
 categoryList.addEventListener("click", (event) => {
@@ -158,9 +158,14 @@ function renderComparison() {
 
 function applyAnswer(factor) {
   const [left, right] = comparisons[currentComparisonIndex];
+  const leftWeight = weights[left];
+  const rightWeight = weights[right];
+  const ratioGap = Math.abs(Math.log(leftWeight / rightWeight));
+  const damping = 1 / (1 + ratioGap);
+  const adjustedFactor = Math.pow(factor, damping);
 
-  weights[left] *= factor;
-  weights[right] /= factor;
+  weights[left] *= adjustedFactor;
+  weights[right] /= adjustedFactor;
 
   currentComparisonIndex += 1;
 
@@ -176,14 +181,13 @@ function showResults() {
   gamePanel.classList.add("hidden");
   resultsPanel.classList.remove("hidden");
 
-  const ordered = Object.entries(weights).sort((a, b) => b[1] - a[1]);
-  const copyableText = ordered
-    .map(([name, value]) => `${name}\t${value.toFixed(3)}`)
+  const copyableText = categories
+    .map((name) => `${name}\t${weights[name].toFixed(3)}`)
     .join("\n");
 
   resultsTableWrap.innerHTML = `
     <label for="results-output">Copy and paste into a spreadsheet</label>
-    <textarea id="results-output" rows="${Math.max(ordered.length + 1, 6)}" readonly>${escapeHtml(copyableText)}</textarea>
+    <textarea id="results-output" rows="${Math.max(categories.length + 1, 6)}" readonly>${escapeHtml(copyableText)}</textarea>
   `;
 
   const resultsOutput = document.getElementById("results-output");
