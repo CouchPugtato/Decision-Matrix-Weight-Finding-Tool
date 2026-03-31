@@ -2,6 +2,7 @@ const categories = [];
 let comparisons = [];
 let currentComparisonIndex = 0;
 let weights = {};
+let answerHistory = [];
 
 const categoryInput = document.getElementById("category-input");
 const categoryList = document.getElementById("category-list");
@@ -12,6 +13,7 @@ const resultsPanel = document.getElementById("results-panel");
 const questionText = document.getElementById("question-text");
 const progressText = document.getElementById("progress-text");
 const resultsTableWrap = document.getElementById("results-table-wrap");
+const backButton = document.getElementById("back-btn");
 
 document.getElementById("add-category-btn").addEventListener("click", () => {
   let added = 0;
@@ -46,6 +48,7 @@ document.getElementById("restart-btn").addEventListener("click", () => {
   comparisons = [];
   currentComparisonIndex = 0;
   weights = {};
+  answerHistory = [];
   renderCategories();
   categoryInput.value = "";
   setupMessage.textContent = "Start with a fresh set of categories.";
@@ -62,6 +65,10 @@ document.getElementById("answer-buttons").addEventListener("click", (event) => {
 
   const factor = Number(button.dataset.factor);
   applyAnswer(factor);
+});
+
+backButton.addEventListener("click", () => {
+  undoLastAnswer();
 });
 
 categoryList.addEventListener("click", (event) => {
@@ -123,6 +130,7 @@ function startGame() {
   weights = Object.fromEntries(categories.map((category) => [category, 1]));
   comparisons = buildComparisons(categories);
   currentComparisonIndex = 0;
+  answerHistory = [];
 
   setupPanel.classList.add("hidden");
   resultsPanel.classList.add("hidden");
@@ -154,6 +162,7 @@ function renderComparison() {
   const [left, right] = comparisons[currentComparisonIndex];
   questionText.textContent = `I care about ${left} __ than ${right}?`;
   progressText.textContent = `${currentComparisonIndex + 1} / ${comparisons.length}`;
+  backButton.disabled = currentComparisonIndex === 0;
 }
 
 function applyAnswer(factor) {
@@ -163,6 +172,13 @@ function applyAnswer(factor) {
   const ratioGap = Math.abs(Math.log(leftWeight / rightWeight));
   const damping = 1 / (1 + ratioGap);
   const adjustedFactor = Math.pow(factor, damping);
+
+  answerHistory.push({
+    index: currentComparisonIndex,
+    left,
+    right,
+    adjustedFactor
+  });
 
   weights[left] *= adjustedFactor;
   weights[right] /= adjustedFactor;
@@ -174,6 +190,18 @@ function applyAnswer(factor) {
     return;
   }
 
+  renderComparison();
+}
+
+function undoLastAnswer() {
+  if (answerHistory.length === 0) {
+    return;
+  }
+
+  const lastAnswer = answerHistory.pop();
+  weights[lastAnswer.left] /= lastAnswer.adjustedFactor;
+  weights[lastAnswer.right] *= lastAnswer.adjustedFactor;
+  currentComparisonIndex = lastAnswer.index;
   renderComparison();
 }
 
