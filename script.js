@@ -4,7 +4,6 @@ let currentComparisonIndex = 0;
 let weights = {};
 
 const singleCategoryInput = document.getElementById("single-category");
-const csvCategoriesInput = document.getElementById("csv-categories");
 const categoryList = document.getElementById("category-list");
 const setupMessage = document.getElementById("setup-message");
 const setupPanel = document.getElementById("setup-panel");
@@ -18,24 +17,6 @@ document.getElementById("add-category-btn").addEventListener("click", () => {
   addCategory(singleCategoryInput.value);
   singleCategoryInput.value = "";
   singleCategoryInput.focus();
-});
-
-document.getElementById("add-csv-btn").addEventListener("click", () => {
-  const parts = csvCategoriesInput.value
-    .split(/[\n,]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  let added = 0;
-  parts.forEach((part) => {
-    added += addCategory(part, false) ? 1 : 0;
-  });
-
-  csvCategoriesInput.value = "";
-  renderCategories();
-  setupMessage.textContent = added > 0
-    ? `Imported ${added} categor${added === 1 ? "y" : "ies"}.`
-    : "No new categories were imported.";
 });
 
 document.getElementById("clear-categories-btn").addEventListener("click", () => {
@@ -60,7 +41,6 @@ document.getElementById("restart-btn").addEventListener("click", () => {
   weights = {};
   renderCategories();
   singleCategoryInput.value = "";
-  csvCategoriesInput.value = "";
   setupMessage.textContent = "Start with a fresh set of categories.";
   setupPanel.classList.remove("hidden");
   gamePanel.classList.add("hidden");
@@ -82,6 +62,18 @@ singleCategoryInput.addEventListener("keydown", (event) => {
     event.preventDefault();
     document.getElementById("add-category-btn").click();
   }
+});
+
+categoryList.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-remove-index]");
+  if (!button) {
+    return;
+  }
+
+  const index = Number(button.dataset.removeIndex);
+  const [removed] = categories.splice(index, 1);
+  renderCategories();
+  setupMessage.textContent = `Removed "${removed}".`;
 });
 
 function addCategory(value, render = true) {
@@ -113,9 +105,12 @@ function addCategory(value, render = true) {
 function renderCategories() {
   categoryList.innerHTML = "";
 
-  categories.forEach((category) => {
+  categories.forEach((category, index) => {
     const item = document.createElement("li");
-    item.textContent = category;
+    item.innerHTML = `
+      <span>${escapeHtml(category)}</span>
+      <button type="button" class="remove-btn" data-remove-index="${index}">Remove</button>
+    `;
     categoryList.appendChild(item);
   });
 
