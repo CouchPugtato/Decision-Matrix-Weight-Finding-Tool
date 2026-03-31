@@ -54,11 +54,11 @@ button {
 input,
 textarea {
   width: 100%;
-  border: 1px solid #9ca3af;
+  border: 1px solid #52525b;
   border-radius: 4px;
   padding: 8px;
-  color: #e5e7eb;
-  background: #4b5563;
+  color: #f4f4f5;
+  background: #3f3f46;
 }
 
 textarea {
@@ -67,10 +67,10 @@ textarea {
 }
 
 button {
-  border: 1px solid #9ca3af;
+  border: 1px solid #52525b;
   border-radius: 4px;
-  background: #6b7280;
-  color: #f3f4f6;
+  background: #3f3f46;
+  color: #f4f4f5;
   padding: 8px 12px;
   cursor: pointer;
 }
