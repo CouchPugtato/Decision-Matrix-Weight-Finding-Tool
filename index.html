@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision Matrix Weight Finder</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <section id="setup-panel">
+      <h2>Enter categories</h2>
+
+      <label for="single-category">Add one category</label>
+      <div class="row">
+        <input id="single-category" type="text" placeholder="Cost">
+        <button id="add-category-btn" type="button">Add</button>
+      </div>
+
+      <label for="csv-categories">Or paste comma-separated categories</label>
+      <textarea id="csv-categories" rows="4" placeholder="Cost, Speed, Quality, Risk"></textarea>
+      <div class="row">
+        <button id="add-csv-btn" type="button">Import</button>
+        <button id="clear-categories-btn" type="button">Clear</button>
+      </div>
+
+      <h3>Categories</h3>
+      <ul id="category-list" class="category-list"></ul>
+      <p id="setup-message" class="status-text"></p>
+
+      <button id="start-game-btn" type="button">Start</button>
+    </section>
+
+    <section class="hidden" id="game-panel">
+      <div class="row row-between">
+        <h2>Compare categories</h2>
+        <button id="restart-btn" type="button">Start over</button>
+      </div>
+
+      <p id="progress-text" class="status-text"></p>
+      <p id="question-text" class="question-text">I care about A __ than B?</p>
+
+      <div id="answer-buttons" class="answer-list">
+        <button type="button" data-factor="0.5">Much less than</button>
+        <button type="button" data-factor="0.75">Less than</button>
+        <button type="button" data-factor="1">The same as</button>
+        <button type="button" data-factor="1.25">More than</button>
+        <button type="button" data-factor="1.5">Much more than</button>
+      </div>
+    </section>
+
+    <section class="hidden" id="results-panel">
+      <h2>Weights</h2>
+      <div id="results-table-wrap"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
